@@ -1,6 +1,6 @@
 # Aigües Interiors
 
-Static browser map of mainland Spain's official inland standing-water bodies. It overlays MITECO PHC 2022-2027 lake and reservoir polygons on open IGN satellite imagery, vector labels, and street cartography.
+Static browser map of mainland Spain's official inland standing-water bodies. It overlays MITECO PHC 2022-2027 lake and reservoir polygons on open IGN satellite imagery and vector street cartography.
 
 ## Run locally
 
@@ -44,10 +44,9 @@ The overview tolerance is 0.001° and the more detailed tolerance is 0.0001°. A
 
 - Water polygons: [MITECO, Masas de agua superficial PHC 2022-2027](https://www.miteco.gob.es/es/cartografia-y-sig/ide/descargas/agua/masas-de-agua-phc-2022-2027.html)
 - Satellite imagery: [IGN PNOA/Sentinel-2 WMTS](https://www.ign.es/wmts/pnoa-ma?service=WMTS&request=GetCapabilities)
-- Streets: [IGN Base Map WMTS](https://www.ign.es/wmts/ign-base?service=WMTS&request=GetCapabilities)
-- Satellite labels: [IGN Mapabase vector tiles](https://ideespain.github.io/mapabase/servicios/estilos/)
+- Streets and labels: [IGN Mapabase vector tiles and styles](https://ideespain.github.io/mapabase/servicios/estilos/)
 
-The imagery service uses Sentinel-2 at national scales and current 25/50 cm PNOA orthophotos when zoomed in. Water boundaries remain hydrological planning delimitations and may not coincide with a reservoir's current shoreline.
+The imagery service uses Sentinel-2 at national scales and current 25/50 cm PNOA orthophotos when zoomed in. Labels are rendered from vectors in both basemap modes. Foreign land is muted at territorial scales to distinguish it from the mainland Spanish coverage. Water boundaries remain hydrological planning delimitations and may not coincide with a reservoir's current shoreline.
 
 ## Attribution and licenses
 

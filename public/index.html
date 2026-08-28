@@ -22,56 +22,51 @@
         <p class="subtitle"><span id="feature-count">886</span> llacs i embassaments de l'Espanya peninsular</p>
       </header>
 
-      <section class="controls-panel glass-panel" aria-labelledby="layers-title">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow">Visualització</p>
-            <h2 id="layers-title">Capes del mapa</h2>
-          </div>
-          <button id="collapse-controls" class="icon-button" type="button" aria-label="Minimitza el selector de capes" aria-expanded="true">−</button>
+      <section class="controls-panel glass-panel" aria-label="Cerca, mapa base i filtres">
+        <div class="water-search">
+          <label class="sr-only" for="water-search">Cerca per nom o codi</label>
+          <input id="water-search" list="water-options" type="search" autocomplete="off" placeholder="Cerca un llac o codi">
+          <datalist id="water-options"></datalist>
         </div>
 
-        <div id="controls-content">
-          <div class="water-search">
-            <label for="water-search">Cerca per nom o codi</label>
-            <input id="water-search" list="water-options" type="search" autocomplete="off" placeholder="Ex. Embalse Añarbe">
-            <datalist id="water-options"></datalist>
-          </div>
+        <button id="basemap-toggle" class="basemap-toggle" type="button" data-basemap="satellite" aria-label="Mapa base actual: satèl·lit. Canvia a carrers" disabled>
+          <svg class="basemap-icon satellite-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7.2 16.8a7 7 0 0 1 0-9.9l9.9 9.9a7 7 0 0 1-9.9 0Zm8.5-10.5 2-2 2 2-2 2m-5.2 3.2 3-3m-8.3 8.3-2.9 2.9m5.4-5.4-5.4-5.4"/>
+          </svg>
+          <svg class="basemap-icon street-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m3.5 6 5-2.5 7 2.5 5-2.5v14.5l-5 2.5-7-2.5-5 2.5V6Zm5-2.5V18m7-12v14.5"/>
+          </svg>
+          <span id="basemap-label">Satèl·lit</span>
+          <svg class="swap-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7-3 3 3 3m-3-3h12m-1-3 3 3-3 3m3-3H7"/></svg>
+        </button>
 
-          <fieldset class="segmented-control">
-            <legend>Mapa base</legend>
-            <button class="basemap-button active" type="button" data-basemap="satellite" aria-pressed="true">Satèl·lit</button>
-            <button class="basemap-button" type="button" data-basemap="street" aria-pressed="false">Carrers</button>
-          </fieldset>
-
-          <fieldset class="filter-list">
-            <legend>Tipus de massa d'aigua</legend>
-            <label>
-              <input type="checkbox" value="natural" checked>
-              <span class="swatch natural"></span>
-              Natural
-              <output id="natural-count">0</output>
-            </label>
-            <label>
-              <input type="checkbox" value="artificial" checked>
-              <span class="swatch artificial"></span>
-              Artificial
-              <output id="artificial-count">0</output>
-            </label>
-            <label>
-              <input type="checkbox" value="modified" checked>
-              <span class="swatch modified"></span>
-              Molt modificada
-              <output id="modified-count">0</output>
-            </label>
-          </fieldset>
-
-          <p class="zoom-message" id="zoom-message">Apropa't per carregar un contorn més detallat, generalitzat des de la font 1:25.000.</p>
-        </div>
+        <fieldset class="filter-list">
+          <legend class="sr-only">Tipus de massa d'aigua</legend>
+          <label>
+            <input type="checkbox" value="natural" checked>
+            <span class="swatch natural"></span>
+            Natural
+            <output id="natural-count">0</output>
+          </label>
+          <label>
+            <input type="checkbox" value="artificial" checked>
+            <span class="swatch artificial"></span>
+            Artificial
+            <output id="artificial-count">0</output>
+          </label>
+          <label>
+            <input type="checkbox" value="modified" checked>
+            <span class="swatch modified"></span>
+            Molt modificada
+            <output id="modified-count">0</output>
+          </label>
+        </fieldset>
       </section>
 
       <section id="details-panel" class="details-panel glass-panel" aria-live="polite" aria-labelledby="details-title">
-        <button id="close-details" class="icon-button close-details" type="button" aria-label="Tanca la informació">×</button>
+        <button id="close-details" class="icon-button close-details" type="button" aria-label="Tanca la informació">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
         <p class="eyebrow" id="details-class">Massa d'aigua</p>
         <h2 id="details-title">Selecciona un llac o embassament</h2>
         <p id="details-hint" class="details-hint">Fes clic sobre una superfície blava per consultar-ne les dades oficials.</p>
@@ -86,11 +81,14 @@
       <div id="loading" class="loading-indicator" role="status">
         <span></span> Carregant cartografia
       </div>
+      <p id="map-status" class="sr-only" aria-live="polite">Carregant la vista territorial.</p>
 
       <button id="about-button" class="about-button glass-panel" type="button" aria-haspopup="dialog">Dades i fonts</button>
       <dialog id="about-dialog">
         <form method="dialog">
-          <button class="icon-button dialog-close" aria-label="Tanca">×</button>
+          <button class="icon-button dialog-close" aria-label="Tanca">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
+          </button>
         </form>
         <p class="eyebrow">Metodologia</p>
         <h2>Dades obertes i oficials</h2>
@@ -111,11 +109,11 @@
         <p>Per fer viable el mapa al navegador, processem els 4.807.002 punts de coordenades de les 886 masses conservades. A cada anell, primer arrodonim cada coordenada a 5 decimals, eliminem punts consecutius duplicats i després apliquem un filtre de distància radial seguit de l'algorisme de Douglas–Peucker, tot en graus geogràfics (EPSG:4326). La capa territorial usa una tolerància de 0,001° i conserva 92.995 punts; la capa més detallada usa 0,0001° i en conserva 361.612.</p>
         <p>A 40° N, aquestes toleràncies equivalen aproximadament a 111 m nord–sud i 85 m est–oest per a la vista territorial, i a 11 m i 8,5 m per a la detallada. Són equivalències orientatives: l'algorisme treballa en graus, no en distància terrestre, i no defineixen la precisió de la font.</p>
         <p>Per tant, una diferència amb la imatge pot provenir tant de la generalització que fem com, sobretot, del fet que es comparen una delimitació hidrològica del cicle 2022–2027 i una imatge captada en una altra data. El nivell dels embassaments i la línia d'aigua canvien. Les imatges del servei PNOA-MA combinen Sentinel-2 (10 m) a escala territorial i ortofotos PNOA (25/50 cm) quan s'amplia el mapa.</p>
-        <p>Sobre la vista de satèl·lit, els topònims es dibuixen com a text vectorial a partir del Mapa Base del Sistema Cartogràfic Nacional; així es mantenen nítids en ampliar i en pantalles d'alta densitat.</p>
+        <p>Els topònims de les vistes de satèl·lit i carrers es dibuixen com a text vectorial a partir del Mapa Base del Sistema Cartogràfic Nacional; així es mantenen nítids en ampliar i en pantalles d'alta densitat. El territori estranger es mostra en gris per distingir-lo de l'àmbit cobert per les dades.</p>
         <div class="source-links">
           <a href="https://www.miteco.gob.es/es/cartografia-y-sig/ide/descargas/agua/masas-de-agua-phc-2022-2027.html" target="_blank" rel="noreferrer">Dades MITECO ↗</a>
           <a href="https://www.ign.es/wmts/pnoa-ma?service=WMTS&amp;request=GetCapabilities" target="_blank" rel="noreferrer">Servei PNOA/IGN ↗</a>
-          <a href="https://ideespain.github.io/mapabase/servicios/estilos/" target="_blank" rel="noreferrer">Etiquetes vectorials IGN ↗</a>
+          <a href="https://ideespain.github.io/mapabase/servicios/estilos/" target="_blank" rel="noreferrer">Mapa vectorial IGN ↗</a>
         </div>
         <p class="license-note">Masses d'aigua: © MITECO. Imatges i cartografia: © IGN/SCNE, CC BY 4.0.</p>
       </dialog>

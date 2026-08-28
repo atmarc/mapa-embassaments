@@ -7,8 +7,9 @@ const WATER_COLORS = {
 };
 
 const WMTS_BASE = "https://www.ign.es/wmts";
+const STREET_STYLE_URL = "https://vt-mapabase.idee.es/files/styles/mapaBase_scn_color1_CNIG.json";
 const IGN_VECTOR_TILES = "https://vt-mapabase.idee.es/1.0.0/mapabase/{z}/{x}/{y}.pbf";
-const IGN_GLYPHS = "https://vt-mapabase.idee.es/files/styles/fonts/pbf/{fontstack}/{range}.pbf";
+const MAINLAND_BOUNDS = [[-9.55, 35.7], [3.35, 43.9]];
 const wmtsUrl = (service, layer, format) =>
   `${WMTS_BASE}/${service}?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0` +
   `&LAYER=${layer}&STYLE=default&TILEMATRIXSET=GoogleMapsCompatible` +
@@ -42,57 +43,31 @@ const state = {
   selected: null,
   enabledClasses: new Set(["natural", "artificial", "modified"]),
   index: new Map(),
-  restoring: false,
+  restoring: true,
 };
+
+const streetLayerVisibility = new Map();
+
+function initialFitPadding() {
+  if (window.innerWidth <= 720) {
+    return {
+      top: Math.min(300, window.innerHeight * 0.38),
+      right: 22,
+      bottom: Math.min(165, window.innerHeight * 0.22),
+      left: 22,
+    };
+  }
+  return { top: 34, right: 34, bottom: 34, left: 34 };
+}
 
 const map = new maplibregl.Map({
   container: "map",
-  center: [-3.55, 40.15],
-  zoom: 5.1,
-  minZoom: 4.3,
+  bounds: MAINLAND_BOUNDS,
+  fitBoundsOptions: { padding: initialFitPadding(), maxZoom: 5 },
+  minZoom: 4,
   maxZoom: 19,
-  maxBounds: [[-11.2, 34.4], [5.4, 44.8]],
   attributionControl: false,
-  style: {
-    version: 8,
-    glyphs: IGN_GLYPHS,
-    sources: {
-      satellite: {
-        type: "raster",
-        tiles: [wmtsUrl("pnoa-ma", "OI.OrthoimageCoverage", "image/jpeg")],
-        tileSize: 256,
-        maxzoom: 20,
-        attribution: "© <a href='https://www.ign.es/' target='_blank'>IGN/SCNE</a>, CC BY 4.0",
-      },
-      street: {
-        type: "raster",
-        tiles: [wmtsUrl("ign-base", "IGNBaseTodo", "image/jpeg")],
-        tileSize: 256,
-        maxzoom: 20,
-        attribution: "© <a href='https://www.ign.es/' target='_blank'>IGN/SCNE</a>, CC BY 4.0",
-      },
-      "ign-labels": {
-        type: "vector",
-        tiles: [IGN_VECTOR_TILES],
-        minzoom: 0,
-        maxzoom: 17,
-        attribution: "© IGN/SCNE",
-      },
-      "water-overview": {
-        type: "geojson",
-        data: "data/inland-waters-overview.geojson",
-        promoteId: "id",
-        attribution: "© Ministerio para la Transición Ecológica y el Reto Demográfico",
-      },
-    },
-    layers: [
-      { id: "satellite", type: "raster", source: "satellite" },
-      { id: "street", type: "raster", source: "street", layout: { visibility: "none" } },
-      waterFillLayer("water-overview-fill", "water-overview", 0, 24),
-      waterLineLayer("water-overview-line", "water-overview", 0, 24),
-      ...ignLabelLayers(),
-    ],
-  },
+  style: STREET_STYLE_URL,
 });
 
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
@@ -141,7 +116,7 @@ function ignLabelLayer(id, sourceLayer, minzoom, maxzoom, filter, layout = {}, p
   return {
     id,
     type: "symbol",
-    source: "ign-labels",
+    source: "mapaBaseXYZ",
     "source-layer": sourceLayer,
     minzoom,
     maxzoom,
@@ -162,6 +137,69 @@ function ignLabelLayer(id, sourceLayer, minzoom, maxzoom, filter, layout = {}, p
       ...paint,
     },
   };
+}
+
+function addApplicationLayers() {
+  const officialLayers = map.getStyle().layers || [];
+  for (const layer of [...officialLayers].reverse()) map.removeLayer(layer.id);
+  if (map.getSource("mapaBaseXYZ")) map.removeSource("mapaBaseXYZ");
+  map.addSource("mapaBaseXYZ", {
+    type: "vector",
+    tiles: [IGN_VECTOR_TILES],
+    minzoom: 0,
+    maxzoom: 17,
+    attribution: "© IGN/SCNE",
+  });
+
+  for (const layer of officialLayers) {
+    if (layer.type === "symbol") continue;
+    const normalized = { ...layer };
+    if (normalized.maxZoom !== undefined && normalized.maxzoom === undefined) normalized.maxzoom = normalized.maxZoom;
+    if (normalized.minZoom !== undefined && normalized.minzoom === undefined) normalized.minzoom = normalized.minZoom;
+    delete normalized.maxZoom;
+    delete normalized.minZoom;
+    map.addLayer(normalized);
+    streetLayerVisibility.set(normalized.id, normalized.layout?.visibility || "visible");
+  }
+
+  const firstOfficialLayer = map.getStyle().layers[0]?.id;
+
+  map.addSource("satellite", {
+    type: "raster",
+    tiles: [wmtsUrl("pnoa-ma", "OI.OrthoimageCoverage", "image/jpeg")],
+    tileSize: 256,
+    maxzoom: 20,
+    attribution: "© <a href='https://www.ign.es/' target='_blank'>IGN/SCNE</a>, CC BY 4.0",
+  });
+  map.addLayer({ id: "satellite", type: "raster", source: "satellite" }, firstOfficialLayer);
+
+  map.addSource("water-overview", {
+    type: "geojson",
+    data: "data/inland-waters-overview.geojson",
+    promoteId: "id",
+    attribution: "© Ministerio para la Transición Ecológica y el Reto Demográfico",
+  });
+
+  map.addLayer({
+    id: "inactive-countries",
+    type: "fill",
+    source: "mapaBaseXYZ",
+    "source-layer": "contexto_territorios_pol",
+    minzoom: 0,
+    maxzoom: 12,
+    filter: [
+      "all",
+      ["==", ["get", "clase"], "tierra_firme"],
+      ["!=", ["get", "esp"], 1],
+    ],
+    paint: {
+      "fill-color": "#aeb7b3",
+      "fill-opacity": 0.7,
+    },
+  });
+  map.addLayer(waterFillLayer("water-overview-fill", "water-overview", 0, 24));
+  map.addLayer(waterLineLayer("water-overview-line", "water-overview", 0, 24));
+  for (const layer of ignLabelLayers()) map.addLayer(layer);
 }
 
 function ignLabelLayers() {
@@ -233,11 +271,16 @@ function ignLabelLayers() {
 }
 
 map.on("load", async () => {
-  document.getElementById("loading").hidden = true;
+  addApplicationLayers();
   bindLayerEvents("water-overview-fill", "water-overview");
+  if (new URLSearchParams(location.search).get("base") === "street") state.basemap = "street";
+  setBasemap(state.basemap);
+  document.getElementById("basemap-toggle").disabled = false;
   await loadMetadata();
   restoreUrlState();
   updateZoomMessage();
+  document.getElementById("loading").hidden = true;
+  document.getElementById("map").classList.add("ready");
 });
 
 map.on("zoomend", () => {
@@ -250,7 +293,7 @@ map.on("moveend", updateUrlState);
 async function loadDetailLayer() {
   if (state.detailLoaded || state.detailLoading) return;
   state.detailLoading = true;
-  const zoomMessage = document.getElementById("zoom-message");
+  const zoomMessage = document.getElementById("map-status");
   zoomMessage.textContent = "Carregant els contorns detallats…";
   try {
     const response = await fetch("data/inland-waters-detail.geojson");
@@ -339,15 +382,14 @@ function clearSelection() {
 function setBasemap(name) {
   state.basemap = name;
   map.setLayoutProperty("satellite", "visibility", name === "satellite" ? "visible" : "none");
-  map.setLayoutProperty("street", "visibility", name === "street" ? "visible" : "none");
-  for (const layerId of LABEL_LAYER_IDS) {
-    map.setLayoutProperty(layerId, "visibility", name === "satellite" ? "visible" : "none");
+  for (const [layerId, visibility] of streetLayerVisibility) {
+    map.setLayoutProperty(layerId, "visibility", name === "street" ? visibility : "none");
   }
-  document.querySelectorAll(".basemap-button").forEach((button) => {
-    const active = button.dataset.basemap === name;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-pressed", String(active));
-  });
+  const button = document.getElementById("basemap-toggle");
+  const isSatellite = name === "satellite";
+  button.dataset.basemap = name;
+  document.getElementById("basemap-label").textContent = isSatellite ? "Satèl·lit" : "Carrers";
+  button.setAttribute("aria-label", isSatellite ? "Mapa base actual: satèl·lit. Canvia a carrers" : "Mapa base actual: carrers. Canvia a satèl·lit");
   updateUrlState();
 }
 
@@ -386,7 +428,7 @@ async function loadMetadata() {
 
 function updateZoomMessage() {
   if (state.detailLoading) return;
-  const message = document.getElementById("zoom-message");
+  const message = document.getElementById("map-status");
   if (map.getZoom() < 10.35) message.textContent = "Apropa't per carregar un contorn més detallat, generalitzat des de la font 1:25.000.";
   else if (state.detailLoaded) message.textContent = "Contorn més detallat carregat · generalització d'una font 1:25.000.";
 }
@@ -421,7 +463,9 @@ function restoreUrlState() {
   updateUrlState();
 }
 
-document.querySelectorAll(".basemap-button").forEach((button) => button.addEventListener("click", () => setBasemap(button.dataset.basemap)));
+document.getElementById("basemap-toggle").addEventListener("click", () => {
+  setBasemap(state.basemap === "satellite" ? "street" : "satellite");
+});
 
 document.querySelectorAll(".filter-list input").forEach((checkbox) => {
   checkbox.addEventListener("change", () => {
@@ -443,15 +487,6 @@ document.getElementById("water-search").addEventListener("change", (event) => {
   const camera = { center: record.center, zoom: Math.max(map.getZoom(), 10.5) };
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) map.jumpTo(camera);
   else map.flyTo(camera);
-});
-
-document.getElementById("collapse-controls").addEventListener("click", (event) => {
-  const content = document.getElementById("controls-content");
-  const expanded = event.currentTarget.getAttribute("aria-expanded") === "true";
-  content.hidden = expanded;
-  event.currentTarget.setAttribute("aria-expanded", String(!expanded));
-  event.currentTarget.textContent = expanded ? "+" : "−";
-  event.currentTarget.setAttribute("aria-label", expanded ? "Amplia el selector de capes" : "Minimitza el selector de capes");
 });
 
 const aboutDialog = document.getElementById("about-dialog");

@@ -20,6 +20,9 @@ html, body, main, #map {
   margin: 0;
 }
 
+#map { opacity: 0; transition: opacity 180ms ease; }
+#map.ready { opacity: 1; }
+
 body {
   overflow: hidden;
   color: var(--ink);
@@ -29,6 +32,18 @@ body {
 
 button, input { font: inherit; }
 button { color: inherit; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 .skip-link {
   position: fixed;
@@ -100,21 +115,15 @@ h2 {
   z-index: 4;
   top: 1rem;
   right: 1rem;
-  width: 18.5rem;
-  padding: 1rem;
+  width: 16.5rem;
+  padding: 0.7rem;
   max-height: calc(100dvh - 2rem);
   overflow-y: auto;
 }
 
-.panel-heading {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-}
-
-.panel-heading h2 { margin-bottom: 0.4rem; }
-
 .icon-button {
+  display: inline-grid;
+  place-items: center;
   width: 2rem;
   height: 2rem;
   padding: 0;
@@ -122,9 +131,11 @@ h2 {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.45);
   cursor: pointer;
+  line-height: 0;
 }
 
 .icon-button:hover, .icon-button:focus-visible { background: white; }
+.icon-button svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 
 fieldset {
   margin: 0;
@@ -133,18 +144,7 @@ fieldset {
 }
 
 .water-search {
-  display: grid;
-  gap: 0.38rem;
-  padding: 0.65rem 0 0.85rem;
-  border-top: 1px solid var(--line);
-}
-
-.water-search label {
-  color: var(--muted);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  margin-bottom: 0.45rem;
 }
 
 .water-search input {
@@ -166,33 +166,34 @@ legend {
   text-transform: uppercase;
 }
 
-.segmented-control {
+.basemap-toggle {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.35rem;
-  padding-top: 0.15rem;
-}
-
-.segmented-control legend { grid-column: 1 / -1; }
-
-.basemap-button {
-  padding: 0.55rem;
+  grid-template-columns: 1.25rem 1fr 1rem;
+  gap: 0.55rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.58rem 0.65rem;
   border: 1px solid var(--line);
   border-radius: 2px;
-  background: transparent;
+  background: var(--ink);
+  color: white;
   cursor: pointer;
+  text-align: left;
 }
 
-.basemap-button.active {
-  color: white;
-  border-color: var(--ink);
-  background: var(--ink);
-}
+.basemap-toggle:hover, .basemap-toggle:focus-visible { background: var(--blue-dark); }
+.basemap-toggle:disabled { opacity: 0.58; cursor: wait; }
+.basemap-toggle svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.basemap-toggle .swap-icon { width: 0.9rem; height: 0.9rem; opacity: 0.72; }
+.basemap-toggle[data-basemap="satellite"] .street-icon,
+.basemap-toggle[data-basemap="street"] .satellite-icon { display: none; }
 
 .filter-list {
   display: grid;
   gap: 0.15rem;
-  margin-top: 1rem;
+  margin-top: 0.6rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--line);
 }
 
 .filter-list label {
@@ -217,15 +218,6 @@ legend {
 
 .swatch.artificial { background: var(--cyan); }
 .swatch.modified { background: var(--orange); }
-
-.zoom-message {
-  margin: 0.8rem 0 0;
-  padding-top: 0.75rem;
-  color: var(--muted);
-  border-top: 1px solid var(--line);
-  font-size: 0.72rem;
-  line-height: 1.35;
-}
 
 .details-panel {
   position: fixed;
@@ -342,18 +334,35 @@ dialog code { font-size: 0.78rem; }
 }
 .license-note { margin: 1rem 0 0; padding-top: 1rem; border-top: 1px solid var(--line); }
 
-.maplibregl-ctrl-top-right { top: 10.5rem; right: 0.5rem; }
+.maplibregl-ctrl-top-right { top: 13rem; right: 0.5rem; }
 .maplibregl-ctrl-bottom-right { bottom: 3.5rem; }
 .maplibregl-ctrl-attrib { font-size: 0.65rem; }
+.maplibregl-ctrl-group {
+  display: grid;
+  gap: 0.38rem;
+  background: transparent;
+  box-shadow: none;
+}
+.maplibregl-ctrl-group button,
+.maplibregl-ctrl-group button + button {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 50%;
+  background-color: var(--panel);
+  box-shadow: 0 4px 16px rgba(8, 31, 34, 0.18);
+}
+.maplibregl-ctrl-group button:hover { background-color: white; }
+.maplibregl-ctrl button .maplibregl-ctrl-icon { background-size: 1.15rem 1.15rem; }
 
 @media (max-width: 720px) {
   .brand-panel { top: 0.65rem; left: 0.65rem; width: calc(100vw - 1.3rem); padding: 0.85rem 1rem; }
   .brand-panel .subtitle { max-width: calc(100% - 1rem); }
-  .controls-panel { top: 7.6rem; right: 0.65rem; width: min(17.5rem, calc(100vw - 1.3rem)); max-height: calc(100dvh - 18.5rem); }
+  .controls-panel { top: 7.6rem; right: 0.65rem; width: min(16.5rem, calc(100vw - 1.3rem)); max-height: calc(100dvh - 18.5rem); }
   .details-panel { bottom: 0.65rem; left: 0.65rem; width: calc(100vw - 1.3rem); }
   .about-button { right: 0.65rem; bottom: auto; top: 6.25rem; font-size: 0.72rem; }
   dl { grid-template-columns: 1fr 1fr; }
-  .maplibregl-ctrl-top-right { top: 11.9rem; right: 0.15rem; }
+  .maplibregl-ctrl-top-right { top: 19.7rem; right: 0.15rem; }
   .maplibregl-ctrl-bottom-right { bottom: 10.8rem; }
   .maplibregl-ctrl-bottom-left { bottom: 10rem; }
 }
