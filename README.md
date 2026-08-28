@@ -2,6 +2,8 @@
 
 Static browser map of mainland Spain's official inland standing-water bodies. It overlays MITECO PHC 2022-2027 lake and reservoir polygons on open IGN satellite imagery and vector street cartography.
 
+You can [view and try the map here](https://atmarc.github.io/mapa-embassaments/).
+
 ## Run locally
 
 The generated data is included. Start any static HTTP server from the repository root:
