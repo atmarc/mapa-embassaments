@@ -1,0 +1,48 @@
+{
+  "featureCount": 886,
+  "areaKm2": 4324.12,
+  "classifications": {
+    "artificial": 44,
+    "modified": 622,
+    "natural": 220
+  },
+  "planningCycle": "2022-2027",
+  "generatedAt": "2026-08-28T12:23:49.598728+00:00",
+  "source": {
+    "title": "Masas de agua superficial (polígonos) PHC 2022-2027",
+    "page": "https://www.miteco.gob.es/es/cartografia-y-sig/ide/descargas/agua/masas-de-agua-phc-2022-2027.html",
+    "wfs": "https://gis.miteco.gob.es/geoserver/agua/masas_aguaspf_2027_a/wfs",
+    "filter": "categoria='Lago'",
+    "crs": {
+      "type": "name",
+      "properties": {
+        "name": "urn:ogc:def:crs:EPSG::4326"
+      }
+    },
+    "rawFeatureCount": 888,
+    "rawArchive": "data/raw/miteco-lakes-phc-2022-2027.geojson.gz",
+    "rawArchiveSha256": "b9d3c4d6766073b090085e794acb8c432241b3b15396efdaa3eaa57ff86ebbd4"
+  },
+  "processing": {
+    "scope": "Mainland Spain",
+    "excluded": {
+      "balearic_islands": 2
+    },
+    "sourcePoints": 4807002,
+    "overviewPoints": 92995,
+    "detailPoints": 361612,
+    "overviewToleranceDegrees": 0.001,
+    "detailToleranceDegrees": 0.0001,
+    "coordinateDecimals": 5,
+    "coordinateProcessing": "Round each ring to 5 decimals and remove consecutive duplicates before simplification",
+    "simplification": "Radial-distance pre-pass followed by Douglas-Peucker on each ring in EPSG:4326 degrees"
+  },
+  "outputs": {
+    "overviewBytes": 2001935,
+    "detailBytes": 6760955,
+    "indexBytes": 284294,
+    "overviewSha256": "acd9f84915103a089a64f25fdd3919ef258ec880d85adbe1dbe5f4675a26bbbb",
+    "detailSha256": "12efc826e5dd3053832e6b6f17ff244b42ad8ec04c4daca15eb4b919d4223e42"
+  },
+  "attribution": "© Ministerio para la Transición Ecológica y el Reto Demográfico"
+}

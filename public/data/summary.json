@@ -1,0 +1,11 @@
+{
+  "featureCount": 886,
+  "areaKm2": 4324.12,
+  "classifications": {
+    "artificial": 44,
+    "modified": 622,
+    "natural": 220
+  },
+  "planningCycle": "2022-2027",
+  "generatedAt": "2026-08-28T12:23:49.598728+00:00"
+}
