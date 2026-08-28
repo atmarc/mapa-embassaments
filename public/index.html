@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ca">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Explora les masses d'aigua interiors de l'Espanya peninsular sobre cartografia i ortofotografia oficial.">
+    <title>Aigües Interiors · Espanya</title>
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css">
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js"></script>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#map">Ves al mapa</a>
+    <main>
+      <div id="map" tabindex="-1" aria-label="Mapa interactiu de masses d'aigua interiors"></div>
+
+      <header class="brand-panel glass-panel">
+        <p class="eyebrow">Atles hidrogràfic · PHC 2022–2027</p>
+        <h1>Aigües Interiors</h1>
+        <p class="subtitle"><span id="feature-count">886</span> llacs i embassaments de l'Espanya peninsular</p>
+      </header>
+
+      <section class="controls-panel glass-panel" aria-labelledby="layers-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Visualització</p>
+            <h2 id="layers-title">Capes del mapa</h2>
+          </div>
+          <button id="collapse-controls" class="icon-button" type="button" aria-label="Minimitza el selector de capes" aria-expanded="true">−</button>
+        </div>
+
+        <div id="controls-content">
+          <div class="water-search">
+            <label for="water-search">Cerca per nom o codi</label>
+            <input id="water-search" list="water-options" type="search" autocomplete="off" placeholder="Ex. Embalse Añarbe">
+            <datalist id="water-options"></datalist>
+          </div>
+
+          <fieldset class="segmented-control">
+            <legend>Mapa base</legend>
+            <button class="basemap-button active" type="button" data-basemap="satellite" aria-pressed="true">Satèl·lit</button>
+            <button class="basemap-button" type="button" data-basemap="street" aria-pressed="false">Carrers</button>
+          </fieldset>
+
+          <fieldset class="filter-list">
+            <legend>Tipus de massa d'aigua</legend>
+            <label>
+              <input type="checkbox" value="natural" checked>
+              <span class="swatch natural"></span>
+              Natural
+              <output id="natural-count">0</output>
+            </label>
+            <label>
+              <input type="checkbox" value="artificial" checked>
+              <span class="swatch artificial"></span>
+              Artificial
+              <output id="artificial-count">0</output>
+            </label>
+            <label>
+              <input type="checkbox" value="modified" checked>
+              <span class="swatch modified"></span>
+              Molt modificada
+              <output id="modified-count">0</output>
+            </label>
+          </fieldset>
+
+          <p class="zoom-message" id="zoom-message">Apropa't per carregar un contorn més detallat, generalitzat des de la font 1:25.000.</p>
+        </div>
+      </section>
+
+      <section id="details-panel" class="details-panel glass-panel" aria-live="polite" aria-labelledby="details-title">
+        <button id="close-details" class="icon-button close-details" type="button" aria-label="Tanca la informació">×</button>
+        <p class="eyebrow" id="details-class">Massa d'aigua</p>
+        <h2 id="details-title">Selecciona un llac o embassament</h2>
+        <p id="details-hint" class="details-hint">Fes clic sobre una superfície blava per consultar-ne les dades oficials.</p>
+        <dl id="details-data" hidden>
+          <div><dt>Classificació</dt><dd id="details-nature"></dd></div>
+          <div><dt>Superfície oficial</dt><dd id="details-area"></dd></div>
+          <div><dt>Demarcació</dt><dd id="details-district"></dd></div>
+          <div><dt>Codi oficial</dt><dd id="details-id"></dd></div>
+        </dl>
+      </section>
+
+      <div id="loading" class="loading-indicator" role="status">
+        <span></span> Carregant cartografia
+      </div>
+
+      <button id="about-button" class="about-button glass-panel" type="button" aria-haspopup="dialog">Dades i fonts</button>
+      <dialog id="about-dialog">
+        <form method="dialog">
+          <button class="icon-button dialog-close" aria-label="Tanca">×</button>
+        </form>
+        <p class="eyebrow">Metodologia</p>
+        <h2>Dades obertes i oficials</h2>
+        <h3>Què representa el mapa</h3>
+        <p>Els contorns provenen de les <strong>masses d'aigua superficial (polígons)</strong> dels Plans Hidrològics de Conca del tercer cicle, 2022–2027, publicades pel MITECO. Una massa d'aigua és una unitat diferenciada i significativa de planificació hidrològica; no és un inventari de totes les basses o estanys.</p>
+        <p>L'aplicació demana al servei oficial els elements amb <code>categoria='Lago'</code>. La resposta conté 888 masses; el procés n'exclou 2 de la demarcació <code>ISLAS BALEARES</code> i en publica 886. Es conserven el codi, el nom, la naturalesa, la demarcació, la superfície oficial i la indicació d'embassament.</p>
+
+        <h3>Classificació</h3>
+        <dl class="classification-definitions">
+          <div><dt>Natural</dt><dd>Massa d'aigua superficial que no ha estat designada artificial ni molt modificada.</dd></div>
+          <div><dt>Artificial</dt><dd>Massa d'aigua superficial creada per l'activitat humana.</dd></div>
+          <div><dt>Molt modificada</dt><dd>Massa d'origen natural el caràcter físic de la qual ha canviat substancialment per alteracions humanes i que ha estat designada formalment com a tal.</dd></div>
+        </dl>
+        <p>Aquesta classificació segueix la Directiva marc de l'aigua i no expressa, per si sola, l'estat ecològic, la qualitat de l'aigua ni el nivell d'ompliment actual. Un embassament pot estar classificat com a massa molt modificada o artificial segons el seu origen i la designació del pla.</p>
+
+        <h3>Geometria i precisió</h3>
+        <p>La font de polígons, actualitzada el 25 de setembre de 2023, declara una escala de referència d'<strong>1:25.000</strong>. Aquesta escala no equival a una garantia d'error posicional en metres. Els polígons delimiten unitats de planificació i no necessàriament la riba observada en una data concreta.</p>
+        <p>Per fer viable el mapa al navegador, processem els 4.807.002 punts de coordenades de les 886 masses conservades. A cada anell, primer arrodonim cada coordenada a 5 decimals, eliminem punts consecutius duplicats i després apliquem un filtre de distància radial seguit de l'algorisme de Douglas–Peucker, tot en graus geogràfics (EPSG:4326). La capa territorial usa una tolerància de 0,001° i conserva 92.995 punts; la capa més detallada usa 0,0001° i en conserva 361.612.</p>
+        <p>A 40° N, aquestes toleràncies equivalen aproximadament a 111 m nord–sud i 85 m est–oest per a la vista territorial, i a 11 m i 8,5 m per a la detallada. Són equivalències orientatives: l'algorisme treballa en graus, no en distància terrestre, i no defineixen la precisió de la font.</p>
+        <p>Per tant, una diferència amb la imatge pot provenir tant de la generalització que fem com, sobretot, del fet que es comparen una delimitació hidrològica del cicle 2022–2027 i una imatge captada en una altra data. El nivell dels embassaments i la línia d'aigua canvien. Les imatges del servei PNOA-MA combinen Sentinel-2 (10 m) a escala territorial i ortofotos PNOA (25/50 cm) quan s'amplia el mapa.</p>
+        <p>Sobre la vista de satèl·lit, els topònims es dibuixen com a text vectorial a partir del Mapa Base del Sistema Cartogràfic Nacional; així es mantenen nítids en ampliar i en pantalles d'alta densitat.</p>
+        <div class="source-links">
+          <a href="https://www.miteco.gob.es/es/cartografia-y-sig/ide/descargas/agua/masas-de-agua-phc-2022-2027.html" target="_blank" rel="noreferrer">Dades MITECO ↗</a>
+          <a href="https://www.ign.es/wmts/pnoa-ma?service=WMTS&amp;request=GetCapabilities" target="_blank" rel="noreferrer">Servei PNOA/IGN ↗</a>
+          <a href="https://ideespain.github.io/mapabase/servicios/estilos/" target="_blank" rel="noreferrer">Etiquetes vectorials IGN ↗</a>
+        </div>
+        <p class="license-note">Masses d'aigua: © MITECO. Imatges i cartografia: © IGN/SCNE, CC BY 4.0.</p>
+      </dialog>
+    </main>
+  </body>
+</html>
